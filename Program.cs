@@ -1,3 +1,10 @@
+global using Microsoft.AspNetCore.Mvc;
+global using dotnet_rpg.Models;
+global using System.Text.Json.Serialization;
+global using dotnet_rpg.Services.CharacterService;
+global using dotnet_rpg.Dtos.Character;
+global using AutoMapper;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +13,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var app = builder.Build();
 
