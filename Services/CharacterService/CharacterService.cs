@@ -2,25 +2,23 @@ namespace dotnet_rpg.Services.CharacterService
 {
     public class CharacterService : ICharacterService
     {
-        static List<Character> characters = new List<Character>{
-            new Character(),
-            new Character() { Id = 1, Name = "Sam", HitPoints = 150}
-        };
         private readonly IMapper _mapper;
+        private readonly DataContext _context;
 
-        public CharacterService(IMapper mapper)
+        public CharacterService(IMapper mapper, DataContext context)
         {
+            _context = context;
             _mapper = mapper;
 
         }
         public async Task<ServiceResponse<List<GetCharacterResponseDto>>> AddCharater(AddCharacterRequestDto newCharacter)
         {
-
             var response = new ServiceResponse<List<GetCharacterResponseDto>>();
             var character = _mapper.Map<Character>(newCharacter);
-            character.Id = characters.Max(c => c.Id) + 1;
-            characters.Add(character);
-            response.Data = characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
+            
+            _context.Characters.Add(character);
+            await _context.SaveChangesAsync();
+            response.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToListAsync();
             return response;
         }
 
@@ -30,16 +28,16 @@ namespace dotnet_rpg.Services.CharacterService
 
             try
             {
-                var character = characters.FirstOrDefault(c => c.Id == id);
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
 
                 if (character is null)
                 {
-                    throw new Exception($"Character with '{id}' is not found");
+                    throw new Exception($"Character with '{id}' is not found.");
                 }
 
-                characters.Remove(character);
-
-                response.Data = characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
+                _context.Characters.Remove(character);
+                await _context.SaveChangesAsync();
+                response.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToListAsync();
 
             }
             catch (Exception ex)
@@ -51,18 +49,49 @@ namespace dotnet_rpg.Services.CharacterService
             return response;
         }
 
-        public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
+        public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters(int userId)
         {
+
             var response = new ServiceResponse<List<GetCharacterResponseDto>>();
-            response.Data = characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
+
+            try
+            {
+                response.Data = await _context.Characters
+                    .Where(c => c.User!.Id == userId)
+                    .Select(c => _mapper.Map<GetCharacterResponseDto>(c))
+                    .ToListAsync();
+                
+                if (response is null)
+                {
+                    throw new Exception("No records in the database.");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
             return response;
         }
 
         public async Task<ServiceResponse<GetCharacterResponseDto>> GetCharacterById(int id)
         {
             var response = new ServiceResponse<GetCharacterResponseDto>();
-            var character = characters.FirstOrDefault(c => c.Id == id);
-            response.Data = _mapper.Map<GetCharacterResponseDto>(character);
+            try
+            {
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+                if(character is null){
+                   throw new Exception($"Character with '{id}' is not found."); 
+                }
+                response.Data = _mapper.Map<GetCharacterResponseDto>(character);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
             return response;
         }
 
@@ -72,14 +101,15 @@ namespace dotnet_rpg.Services.CharacterService
 
             try
             {
-                var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
 
                 if (character is null)
                 {
-                    throw new Exception($"Character with '{updatedCharacter.Id}' is not found");
+                    throw new Exception($"Character with '{updatedCharacter.Id}' is not found.");
                 }
 
                 _mapper.Map(updatedCharacter, character);
+                await _context.SaveChangesAsync();
 
                 // character.Name = updatedCharacter.Name;
                 // character.HitPoints = updatedCharacter.HitPoints;

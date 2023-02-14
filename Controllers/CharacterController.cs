@@ -1,6 +1,6 @@
-
 namespace dotnet_rpg.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class CharacterController : ControllerBase
@@ -14,12 +14,17 @@ namespace dotnet_rpg.Controllers
         [HttpGet("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> Get()
         {
-            return Ok(await _characterService.GetAllCharacters());
+            int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
+            return Ok(await _characterService.GetAllCharacters(userId));
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetSingle(int id)
         {
-            return Ok(await _characterService.GetCharacterById(id));
+            var response = await _characterService.GetCharacterById(id);
+            if(response.Data is null){
+                return NotFound(response);
+            }
+            return Ok(response);
         }
         [HttpPost]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> AddCharacter(AddCharacterRequestDto newCharacter)
@@ -39,11 +44,11 @@ namespace dotnet_rpg.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> DeleteCharacter(int id)
         {
-            var character = await _characterService.DeleteCharacter(id);
-            if(character is null){
-                return NotFound(character);
+            var response = await _characterService.DeleteCharacter(id);
+            if(response.Data is null){
+                return NotFound(response);
             }
-            return Ok(character);
+            return Ok(response);
         }
     }
 }
