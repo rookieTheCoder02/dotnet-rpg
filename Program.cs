@@ -14,6 +14,10 @@ global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization;
 global using Swashbuckle.AspNetCore.Filters;
 global using Microsoft.OpenApi.Models;
+global using dotnet_rpg.Dtos.Weapon;
+global using dotnet_rpg.Services.WeaponService;
+
+ 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +40,7 @@ builder.Services.AddSwaggerGen(c => {
     c.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<IWeaponService, WeaponService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -50,6 +55,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 ValidateAudience = false
             };
     });
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
