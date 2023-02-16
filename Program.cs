@@ -16,6 +16,8 @@ global using Swashbuckle.AspNetCore.Filters;
 global using Microsoft.OpenApi.Models;
 global using dotnet_rpg.Dtos.Weapon;
 global using dotnet_rpg.Services.WeaponService;
+global using dotnet_rpg.Dtos.Skill;
+
 
  
 

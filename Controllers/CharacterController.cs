@@ -20,7 +20,8 @@ namespace dotnet_rpg.Controllers
         public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetSingle(int id)
         {
             var response = await _characterService.GetCharacterById(id);
-            if(response.Data is null){
+            if (response.Data is null)
+            {
                 return NotFound(response);
             }
             return Ok(response);
@@ -44,10 +45,16 @@ namespace dotnet_rpg.Controllers
         public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> DeleteCharacter(int id)
         {
             var response = await _characterService.DeleteCharacter(id);
-            if(response.Data is null){
+            if (response.Data is null)
+            {
                 return NotFound(response);
             }
             return Ok(response);
+        }
+        [HttpPost("Skill")]
+        public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> AddCharacterSkill(AddCharacterSkillDto newSkill)
+        {
+            return Ok(await _characterService.AddCharacterSkill(newSkill));
         }
     }
 }
